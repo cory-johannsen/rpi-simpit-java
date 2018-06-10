@@ -1,11 +1,55 @@
 package cjohannsen.protocol;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 
+@Component
 public class MessageCodec {
 
+    public static final byte MESSAGE_HEADER_BYTE_0 = (byte) 0xAA;
+    public static final byte MESSAGE_HEADER_BYTE_1 = (byte) 0x50;
+
+    @Autowired
     public MessageCodec() {
         
+    }
+
+    public byte[] encodeMessage(Messages.Common messageType, final byte payload) {
+        byte[] bytes = {payload};
+        return encodeMessage(messageType, bytes);
+    }
+
+    public byte[] encodeMessage(Messages.Common messageType, final byte[] payload) {
+        //   0xAA
+        //   0x50
+        //   MESSAGE_SIZE
+        //   MESSAGE_TYPE
+        //   PAYLOAD
+        final byte[] message = new byte[payload.length + 4];
+        int i = 0;
+        message[i++] = MESSAGE_HEADER_BYTE_0;
+        message[i++] = MESSAGE_HEADER_BYTE_1;
+        message[i++] = (byte) payload.length;
+        message[i++] = (byte) messageType.getValue();
+        for(byte b : payload) {
+            message[i++] = b;
+        }
+        return message;
+    }
+
+    public byte[] decodeMessage(final byte[] payload) {
+        //   0xAA
+        //   0x50
+        //   MESSAGE_SIZE
+        //   MESSAGE_TYPE
+        //   PAYLOAD
+        final byte[] message = new byte[payload.length - 4];
+        for(int i = 4; i < payload.length; i++) {
+            message[i - 4] = payload[i];
+        }
+        return message;
     }
     
 

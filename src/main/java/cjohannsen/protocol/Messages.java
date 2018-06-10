@@ -2,12 +2,12 @@ package cjohannsen.protocol;
 
 /** Constants for inbound and outbound message IDs.
  */
-public class Packets {
+public class Messages {
 
     /** Common packets.
-     These packet types are used for both inbound and outbound messages.
+        These packet types are used for both inbound and outbound messages.
      */
-    public enum CommonPackets {
+    public enum Common {
         /// Sync message. Used for handshaking.
         SYNC_MESSAGE(0),
         /// Echo request. Either end can send this, and an echo response is expected.
@@ -16,14 +16,14 @@ public class Packets {
         ECHO_RESP_MESSAGE(2);
 
         private final int id;
-        CommonPackets(int id) { this.id = id; }
+        Common(int id) { this.id = id; }
         public int getValue() { return id; }
     };
 
     /** Outbound packets.
-     IDs for packets that go from the game to devices.
+        IDs for packets that go from the game to devices.
      */
-    enum OutboundPackets {
+    enum Outbound {
         /// Scene change packets are sent by the plugin when
         /// entering or leaving the flight scene.
         SCENE_CHANGE_MESSAGE(3),
@@ -123,14 +123,14 @@ public class Packets {
         AIRSPEED_MESSAGE(27);
 
         private final int id;
-        OutboundPackets(int id) { this.id = id; }
+        Outbound(int id) { this.id = id; }
         public int getValue() { return id; }
     };
 
     /** Inbound packets.
-     These packet types are used for packets going from devices to the game.
+        These packet types are used for packets going from devices to the game.
      */
-    enum InboundPackets {
+    enum Inbound {
         /** Register to receive messages on a given channel. */
         REGISTER_MESSAGE(8),
         /** Deregister), indicate that no further messages
@@ -165,12 +165,13 @@ public class Packets {
         THROTTLE_MESSAGE(19);
 
         private final int id;
-        InboundPackets(int id) { this.id = id; }
+        Inbound(int id) { this.id = id; }
         public int getValue() { return id; }
     };
 
     /** Action Group Indexes
-     These are used to mask out elements of an ACTIONSTATUS_MESSAGE. */
+        These are used to mask out elements of an ACTIONSTATUS_MESSAGE.
+     */
     enum ActionGroupIndexes {
         /** Bitmask for the Stage action group. */
         STAGE_ACTION(1),
