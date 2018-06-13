@@ -58,6 +58,7 @@ public class Application {
             }
 
             // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
+            logger.info("Sending an echo test.");
             simpitHost.sendEchoRequest("RaspberryPi Simpit Device connected.");
         };
     }
