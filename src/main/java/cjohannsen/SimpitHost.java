@@ -1,6 +1,6 @@
 package cjohannsen;
 
-import cjohannsen.protocol.MessageCodec;
+import cjohannsen.protocol.Packet;
 import cjohannsen.protocol.Messages;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
@@ -15,10 +15,6 @@ public class SimpitHost {
     static final Logger logger = LoggerFactory.getLogger(SimpitHost.class);
 
     private final SerialPort serialPort;
-    private final MessageCodec messageCodec;
-
-    public static final String KERBALSIMPIT_VERSION = "1.1.3";
-    public static final int HANDSHAKE_SYN_LENGTH = KERBALSIMPIT_VERSION.length() + 2;
 
     public static final int HANDSHAKE_ACK_MIN_LENGTH = 5;
 
@@ -26,10 +22,26 @@ public class SimpitHost {
     public static final byte HANDSHAKE_ACK = 0x01;
     public static final byte HANDSHAKE_SYNACK = 0x02;
 
+    public static final String KERBALSIMPIT_VERSION = "1.1.3";
+
+    private static final byte[] SYN = {
+            HANDSHAKE_SYN,
+            KERBALSIMPIT_VERSION.getBytes()[0],
+            KERBALSIMPIT_VERSION.getBytes()[0],
+            KERBALSIMPIT_VERSION.getBytes()[0],
+            KERBALSIMPIT_VERSION.getBytes()[0],
+            KERBALSIMPIT_VERSION.getBytes()[0],
+            0x00
+    };
+
+
+
+
+    public static final long POLL_INTERVAL_MILLIS = 50;
+
     @Autowired
-    public SimpitHost(final SerialPort serialPort, final MessageCodec messageCodec) {
+    public SimpitHost(final SerialPort serialPort) {
         this.serialPort = serialPort;
-        this.messageCodec = messageCodec;
     }
 
     public boolean handshake() {
@@ -47,41 +59,52 @@ public class SimpitHost {
         //   MESSAGE_SIZE
         //   MESSAGE_TYPE 
         //   0x01 SYNACK
-
-        try {
-            int bytesRead = 0;
-            byte[] incomingBytes = new byte[64];
-            while (bytesRead < HANDSHAKE_ACK_MIN_LENGTH) {
-                long startTime = -1;
-                while (serialPort.bytesAvailable() == 0) {
-                    if (startTime == -1 || System.currentTimeMillis() - startTime > 3000) {
-                        logger.info("SimpitHost initiating handshake...");
-                        byte[] message = messageCodec.encodeMessage(Messages.Common.SYNC_MESSAGE, KERBALSIMPIT_VERSION.getBytes());
-                        serialPort.writeBytes(message, message.length);
-                        logger.info("Waiting for ACK...");
-                        startTime = System.currentTimeMillis();
-                    }
-                    Thread.sleep(20);
+        int bytesRead = 0;
+        byte[] incomingBytes = new byte[64];
+        while (bytesRead < HANDSHAKE_ACK_MIN_LENGTH) {
+            long startTime = -1;
+            while (serialPort.bytesAvailable() == 0) {
+                if (startTime == -1 || System.currentTimeMillis() - startTime > 10000) {
+                    logger.info("SimpitHost initiating handshake...");
+                    byte[] message = Packet.encodePacket(Messages.Type.SYNC_MESSAGE, SYN);
+                    logger.info(hexString(message));
+                    serialPort.writeBytes(message, message.length);
+                    logger.info("Waiting for ACK...");
+                    startTime = System.currentTimeMillis();
                 }
-                byte[] readBuffer = new byte[serialPort.bytesAvailable()];
-                int numRead = serialPort.readBytes(readBuffer, readBuffer.length);
-                System.out.println("Read " + numRead + " bytes.");
-                logBuffer(readBuffer);
-                for (final byte b : readBuffer) {
-                    incomingBytes[bytesRead++] = b;
+                try {
+                    Thread.sleep(POLL_INTERVAL_MILLIS);
+                } catch (InterruptedException e) {
+                    // NO-OP
                 }
             }
-            byte[] ackMessage = messageCodec.decodeMessage(incomingBytes);
-            if (ackMessage[0] == HANDSHAKE_ACK) {
-                logger.info("ACK received, sending SYNACK...");
-                byte[] synack = messageCodec.encodeMessage(Messages.Common.SYNC_MESSAGE, HANDSHAKE_SYNACK);
-                serialPort.writeBytes(synack, 1);
+            byte[] readBuffer = new byte[serialPort.bytesAvailable()];
+            int numRead = serialPort.readBytes(readBuffer, readBuffer.length);
+            logger.info("Read " + numRead + " bytes.");
+            logger.info(hexString(readBuffer));
+            for (final byte b : readBuffer) {
+                incomingBytes[bytesRead++] = b;
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage());
+        }
+        Packet ackMessage = Packet.decodePacket(incomingBytes);
+        logger.info("Decoded message of type " + ackMessage.getType());
+        logger.info(hexString(ackMessage.getPayload()));
+        byte ackByte = ackMessage.getPayload()[0];
+        logger.info("ack byte: " + ackByte);
+        if (ackByte == HANDSHAKE_ACK) {
+            logger.info("ACK received, sending SYNACK...");
+            byte[] synack = Packet.encodePacket(Messages.Type.SYNC_MESSAGE, HANDSHAKE_SYNACK);
+            serialPort.writeBytes(synack, 1);
         }
 
+
         return setupDataListener();
+    }
+
+    public boolean sendEchoRequest(String echoMessage) {
+        byte[] buffer = Packet.encodePacket(Messages.Type.ECHO_REQ_MESSAGE, echoMessage.getBytes());
+        logger.info(hexString(buffer));
+        return serialPort.writeBytes(buffer, buffer.length) == buffer.length;
     }
 
     private boolean setupDataListener() {
@@ -93,19 +116,7 @@ public class SimpitHost {
             @Override
             public void serialEvent(SerialPortEvent event)
             {
-                String eventType = "UNKNOWN";
-                switch (event.getEventType()) {
-                    case SerialPort.LISTENING_EVENT_DATA_AVAILABLE:
-                        eventType = "DATA_AVAILABLE";
-                        break;
-                    case SerialPort.LISTENING_EVENT_DATA_RECEIVED:
-                        eventType = "DATA_RECEIVED";
-                        break;
-                    case SerialPort.LISTENING_EVENT_DATA_WRITTEN:
-                        eventType = "DATA_WRITTEN";
-                        break;
-                }
-                logger.info("New event of type: " + eventType);
+                logger.info("New event of type: " + printableEventType(event));
                 if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
                     return;
                 final int bytesAvailable = serialPort.bytesAvailable();
@@ -113,7 +124,7 @@ public class SimpitHost {
                 final byte[] newData = new byte[bytesAvailable];
                 int numRead = serialPort.readBytes(newData, newData.length);
                 logger.info("Read " + numRead + " bytes.");
-                logBuffer(newData);
+                logger.info(hexString(newData));
             }
         });
 
@@ -127,22 +138,24 @@ public class SimpitHost {
         return success;
     }
 
-    private static final byte[] synPacket() {
-        final byte[] syn = new byte[HANDSHAKE_SYN_LENGTH];
-        int i = 0;
-        syn[i++] = 0x00;
-        for(int j = 0; j < KERBALSIMPIT_VERSION.length(); j++) {
-            syn[i++] = (byte)KERBALSIMPIT_VERSION.charAt(j);
+    private static String printableEventType(SerialPortEvent event) {
+        switch (event.getEventType()) {
+            case SerialPort.LISTENING_EVENT_DATA_AVAILABLE:
+                return "DATA_AVAILABLE";
+            case SerialPort.LISTENING_EVENT_DATA_RECEIVED:
+                return "DATA_RECEIVED";
+            case SerialPort.LISTENING_EVENT_DATA_WRITTEN:
+                return "DATA_WRITTEN";
+            default:
+                return "UNKNOWN";
         }
-        syn[i] = HANDSHAKE_SYN;
-        return syn;
     }
 
-    private static final void logBuffer(final byte[] buffer) {
+    private static final String hexString(final byte[] buffer) {
         StringBuilder sb = new StringBuilder();
         for (byte b : buffer) {
             sb.append(String.format("%02X ", b));
         }
-        logger.info(sb.toString());
+        return sb.toString();
     }
 }

@@ -4,20 +4,31 @@ package cjohannsen.protocol;
  */
 public class Messages {
 
-    /** Common packets.
+    /** Type packets.
         These packet types are used for both inbound and outbound messages.
      */
-    public enum Common {
+    public enum Type {
         /// Sync message. Used for handshaking.
-        SYNC_MESSAGE(0),
+        SYNC_MESSAGE,
         /// Echo request. Either end can send this, and an echo response is expected.
-        ECHO_REQ_MESSAGE(1),
+        ECHO_REQ_MESSAGE,
         /// Echo response. Sent in reply to an echo request.
-        ECHO_RESP_MESSAGE(2);
+        ECHO_RESP_MESSAGE,
 
-        private final int id;
-        Common(int id) { this.id = id; }
-        public int getValue() { return id; }
+        UNDEFINED;
+
+        public static final Type from(int value) {
+            switch(value) {
+                case 0:
+                    return SYNC_MESSAGE;
+                case 1:
+                    return ECHO_REQ_MESSAGE;
+                case 2:
+                    return ECHO_RESP_MESSAGE;
+                default:
+                    return UNDEFINED;
+            }
+        }
     };
 
     /** Outbound packets.
