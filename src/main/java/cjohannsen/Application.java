@@ -56,6 +56,9 @@ public class Application {
             else {
                 logger.info("Handshaking success.");
             }
+
+            // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
+            simpitHost.sendEchoRequest("RaspberryPi Simpit Device connected.");
         };
     }
 

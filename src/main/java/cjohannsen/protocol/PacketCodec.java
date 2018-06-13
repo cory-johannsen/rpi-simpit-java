@@ -6,48 +6,56 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class MessageCodec {
+public class PacketCodec {
+
+    public static final int MESSAGE_HEADER_SIZE = 4;
+    public static final int MESSAGE_BODY_PADDING = 2;
 
     public static final byte MESSAGE_HEADER_BYTE_0 = (byte) 0xAA;
     public static final byte MESSAGE_HEADER_BYTE_1 = (byte) 0x50;
 
+    public static final byte MESSAGE_INITIATOR_BYTE = (byte) 0x00;
+    public static final byte MESSAGE_TERMINATOR_BYTE = (byte) 0x00;
+
     @Autowired
-    public MessageCodec() {
+    public PacketCodec() {
         
     }
 
-    public byte[] encodeMessage(Messages.Common messageType, final byte payload) {
+    public byte[] encodePacket(Messages.Common messageType, final byte payload) {
         byte[] bytes = {payload};
-        return encodeMessage(messageType, bytes);
+        return encodePacket(messageType, bytes);
     }
 
-    public byte[] encodeMessage(Messages.Common messageType, final byte[] payload) {
+    public byte[] encodePacket(Messages.Common messageType, final byte[] payload) {
         //   0xAA
         //   0x50
         //   MESSAGE_SIZE
         //   MESSAGE_TYPE
         //   PAYLOAD
-        final byte[] message = new byte[payload.length + 4];
+        final byte[] message = new byte[payload.length + MESSAGE_HEADER_SIZE + MESSAGE_BODY_PADDING];
         int i = 0;
         message[i++] = MESSAGE_HEADER_BYTE_0;
         message[i++] = MESSAGE_HEADER_BYTE_1;
-        message[i++] = (byte) payload.length;
+        message[i++] = (byte) (payload.length + MESSAGE_BODY_PADDING);
         message[i++] = (byte) messageType.getValue();
+        message[i++] = MESSAGE_INITIATOR_BYTE;
         for(byte b : payload) {
             message[i++] = b;
         }
+        message[i] = MESSAGE_TERMINATOR_BYTE;
         return message;
     }
 
-    public byte[] decodeMessage(final byte[] payload) {
+    public byte[] decodePacket(final byte[] payload) {
         //   0xAA
         //   0x50
         //   MESSAGE_SIZE
         //   MESSAGE_TYPE
         //   PAYLOAD
-        final byte[] message = new byte[payload.length - 4];
-        for(int i = 4; i < payload.length; i++) {
-            message[i - 4] = payload[i];
+        final byte[] message = new byte[payload.length - (MESSAGE_HEADER_SIZE + MESSAGE_BODY_PADDING)];
+        for(int i = MESSAGE_HEADER_SIZE + 1; i < payload.length - MESSAGE_BODY_PADDING; i++) {
+            message[i - MESSAGE_HEADER_SIZE + 1] = payload[i];
         }
         return message;
     }
