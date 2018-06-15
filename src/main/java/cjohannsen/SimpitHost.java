@@ -1,21 +1,22 @@
 package cjohannsen;
 
+import cjohannsen.protocol.Handler;
 import cjohannsen.protocol.InvalidPacketException;
+import cjohannsen.protocol.MessageType;
 import cjohannsen.protocol.Packet;
-import cjohannsen.protocol.Messages;
 import com.fazecast.jSerialComm.SerialPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 @Component
 public class SimpitHost {
     static final Logger logger = LoggerFactory.getLogger(SimpitHost.class);
-
-    private final SerialPort serialPort;
 
     public static final int HANDSHAKE_ACK_MIN_LENGTH = 5;
 
@@ -45,12 +46,16 @@ public class SimpitHost {
             0x00
     };
 
-
     public static final long POLL_INTERVAL_MILLIS = 50;
+
+
+    private final SerialPort serialPort;
+    private final Map<MessageType.Datagram, Handler> handlers;
 
     @Autowired
     public SimpitHost(final SerialPort serialPort) {
         this.serialPort = serialPort;
+        this.handlers = new ConcurrentHashMap<>();
     }
 
     public boolean handshake() {
@@ -85,7 +90,7 @@ public class SimpitHost {
             while (serialPort.bytesAvailable() == 0) {
                 if (startTime == -1 || System.currentTimeMillis() - startTime > 10000) {
                     logger.info("SimpitHost initiating handshake...");
-                    byte[] message = Packet.encodePacket(Messages.Type.SYNC_MESSAGE, SYN);
+                    byte[] message = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYN);
                     logger.info(Util.hexString(message));
                     serialPort.writeBytes(message, message.length);
                     logger.info("Waiting for ACK...");
@@ -108,13 +113,13 @@ public class SimpitHost {
         }
         try {
             Packet ackMessage = Packet.decodePacket(incomingBytes);
-            logger.info("Decoded message of type " + ackMessage.getType());
+            logger.info("Decoded message of type " + ackMessage.getDatagram());
             logger.info(Util.hexString(ackMessage.getPayload()));
             byte ackByte = ackMessage.getPayload()[0];
             logger.debug("ack byte: " + ackByte);
             if (ackByte == HANDSHAKE_ACK) {
                 logger.info("ACK received, sending SYNACK...");
-                byte[] synack = Packet.encodePacket(Messages.Type.SYNC_MESSAGE, SYNACK);
+                byte[] synack = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYNACK);
                 logger.info(Util.hexString(synack));
                 serialPort.writeBytes(synack, 1);
             }
@@ -127,11 +132,16 @@ public class SimpitHost {
     }
 
     public boolean sendEchoRequest(String echoMessage) {
-        byte[] buffer = Packet.encodePacket(Messages.Type.ECHO_REQ_MESSAGE, echoMessage.getBytes());
+        byte[] buffer = Packet.encodePacket(MessageType.Command.ECHO_REQ_MESSAGE, echoMessage.getBytes());
         logger.info("Sending echo request: " + Util.hexString(buffer));
         int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
         logger.debug("Wrote " + bytesWritten + " bytes successfully.");
         return bytesWritten == buffer.length;
+    }
+
+
+    public void registerHandler(MessageType.Datagram type, Handler handler) {
+        handlers.put(type, handler);
     }
 
     private void setupDataPoller() {
@@ -162,7 +172,12 @@ public class SimpitHost {
 
                 try {
                     Packet packet = Packet.decodePacket(buffer);
-                    logger.info("Incoming packet: " + packet.getType());
+                    logger.info("Incoming packet: " + packet.getDatagram());
+                    Handler handler = handlers.get(packet.getDatagram());
+                    if (handler != null) {
+                        handler.handle(packet.getDatagram(), packet.getPayload());
+                    }
+
                 } catch (InvalidPacketException e) {
                     logger.error("Invalid packet: " + e);
                 }
