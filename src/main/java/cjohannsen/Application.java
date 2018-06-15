@@ -1,5 +1,6 @@
 package cjohannsen;
 
+import cjohannsen.protocol.MessageType;
 import com.fazecast.jSerialComm.SerialPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+
+import static cjohannsen.protocol.MessageType.Datagram.ALTITUDE_MESSAGE;
+import static cjohannsen.protocol.MessageType.Datagram.ECHO_REQ_MESSAGE;
 
 @SpringBootApplication
 public class Application {
@@ -54,6 +58,16 @@ public class Application {
             }
             else {
                 logger.info("Handshaking success.");
+
+                logger.info("Registering datagram handlers.");
+                simpitHost.registerHandler(ECHO_REQ_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+                    logger.info("ECHO: " + String.valueOf(message));
+                    return true;
+                });
+                simpitHost.registerHandler(ALTITUDE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+                    logger.info("ECHO: " + String.valueOf(message));
+                    return true;
+                });
 
                 // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
                 logger.info("Initiating communications with an echo test.");
