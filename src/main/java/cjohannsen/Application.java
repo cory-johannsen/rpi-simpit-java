@@ -45,7 +45,6 @@ public class Application {
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
-
             logger.info("Initializing SimpitHost...");
 
             SimpitHost simpitHost = ctx.getBean(SimpitHost.class);
@@ -55,11 +54,14 @@ public class Application {
             }
             else {
                 logger.info("Handshaking success.");
-            }
 
-            // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
-            logger.info("Sending an echo test.");
-            simpitHost.sendEchoRequest("RaspberryPi Simpit Device connected.");
+                // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
+                logger.info("Initiating communications with an echo test.");
+                while (true) {
+                    simpitHost.sendEchoRequest("RPi!");
+                    Thread.sleep(2500);
+                }
+            }
         };
     }
 
