@@ -70,6 +70,8 @@ public class MessageType {
     public enum Datagram {
         /// Echo request. Either end can send this, and an echo response is expected.
         ECHO_REQ_MESSAGE(1),
+        /// Echo response. Sent in reply to an echo request.
+        ECHO_RESP_MESSAGE(2),
         /// Scene change packets are sent by the plugin when
         /// entering or leaving the flight scene.
         SCENE_CHANGE_MESSAGE(3),
@@ -182,13 +184,9 @@ public class MessageType {
         private final int value;
         Datagram(int value) { this.value = value; }
         public int getValue() { return value; }
-    };
-
-    /** Inbound packets.
-        These packet types are used for packets going from devices to the game.
-     */
-    public enum Inbound {
-
+        public boolean equals(Datagram d) {
+            return d.value == this.value;
+        }
     };
 
     /** Action Group Indexes

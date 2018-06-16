@@ -2,7 +2,7 @@ package cjohannsen.protocol;
 
 public class Packet {
 
-    public static final int PACKET_SIZE = 64;
+    public static final int PACKET_SIZE = 36;
 
     public static final int MESSAGE_HEADER_SIZE = 4;
 
