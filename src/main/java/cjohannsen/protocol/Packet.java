@@ -2,7 +2,7 @@ package cjohannsen.protocol;
 
 public class Packet {
 
-    public static final int PACKET_SIZE = 64;
+    public static final int PACKET_SIZE = 36;
 
     public static final int MESSAGE_HEADER_SIZE = 4;
 
@@ -12,28 +12,28 @@ public class Packet {
     public static final int MESSAGE_SIZE_INDEX = 2;
     public static final int MESSAGE_TYPE_INDEX = 3;
 
-    private Messages.Type type;
+    private MessageType.Datagram datagram;
     private byte[] payload;
 
-    public Messages.Type getType() {
-        return type;
+    public MessageType.Datagram getDatagram() {
+        return datagram;
     }
 
     public byte[] getPayload() {
         return payload;
     }
 
-    private Packet(final Messages.Type type, final byte[] payload) {
-        this.type = type;
+    private Packet(final MessageType.Datagram datagram, final byte[] payload) {
+        this.datagram = datagram;
         this.payload = payload;
     };
 
-    public static final byte[] encodePacket(Messages.Type messageType, final byte payload) {
+    public static final byte[] encodePacket(MessageType.Command command, final byte payload) {
         byte[] bytes = {payload};
-        return encodePacket(messageType, bytes);
+        return encodePacket(command, bytes);
     }
 
-    public static final byte[] encodePacket(Messages.Type messageType, final byte[] payload) {
+    public static final byte[] encodePacket(MessageType.Command command, final byte[] payload) {
         //   0xAA
         //   0x50
         //   MESSAGE_SIZE
@@ -45,7 +45,7 @@ public class Packet {
         message[i++] = PACKET_HEADER_BYTE_0;
         message[i++] = PACKET_HEADER_BYTE_1;
         message[i++] = (byte) (payload.length);
-        message[i++] = (byte) messageType.ordinal();
+        message[i++] = (byte) command.ordinal();
         for(byte b : payload) {
             message[i++] = b;
         }
@@ -80,6 +80,6 @@ public class Packet {
         for(int i = MESSAGE_HEADER_SIZE; i < payload.length; i++) {
             message[i - MESSAGE_HEADER_SIZE] = payload[i];
         }
-        return new Packet(Messages.Type.from(messageType), message);
+        return new Packet(MessageType.Datagram.from(messageType), message);
     }
 }
