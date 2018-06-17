@@ -40,12 +40,12 @@ public class Packet {
         //   MESSAGE_TYPE
         //   PAYLOAD
         //   0x00
-        final byte[] message = new byte[PACKET_SIZE];
+        final byte[] message = new byte[payload.length + MESSAGE_HEADER_SIZE];
         int i = 0;
         message[i++] = PACKET_HEADER_BYTE_0;
         message[i++] = PACKET_HEADER_BYTE_1;
         message[i++] = (byte) (payload.length);
-        message[i++] = (byte) command.ordinal();
+        message[i++] = (byte) command.getValue();
         for(byte b : payload) {
             message[i++] = b;
         }
@@ -76,9 +76,9 @@ public class Packet {
 
         final byte messageType = payload[MESSAGE_TYPE_INDEX];
 
-        final byte[] message = new byte[payload.length - MESSAGE_HEADER_SIZE];
-        for(int i = MESSAGE_HEADER_SIZE; i < payload.length; i++) {
-            message[i - MESSAGE_HEADER_SIZE] = payload[i];
+        final byte[] message = new byte[payloadSize];
+        for(int i = 0; i < payloadSize; i++) {
+            message[i] = payload[i + MESSAGE_HEADER_SIZE];
         }
         return new Packet(MessageType.Datagram.from(messageType), message);
     }

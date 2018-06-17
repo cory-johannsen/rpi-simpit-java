@@ -68,6 +68,8 @@ public class MessageType {
         IDs for packets that go from the game to devices.
      */
     public enum Datagram {
+        /// Sync message. Used for handshaking.
+        SYNC_MESSAGE(0),
         /// Echo request. Either end can send this, and an echo response is expected.
         ECHO_REQ_MESSAGE(1),
         /// Echo response. Sent in reply to an echo request.
@@ -174,7 +176,7 @@ public class MessageType {
 
         public static final Datagram from(int value) {
             for(Datagram d : Datagram.values()) {
-                if (d.getValue() == value) {
+                if (d.value == value) {
                     return d;
                 }
             }
