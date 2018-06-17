@@ -1,17 +1,45 @@
 package cjohannsen.protocol;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class PayloadTypes {
 
     /** An Altitude message. */
     public static class AltitudeMessage {
-        float sealevel; /**< Altitude above sea level. */
-        float surface; /**< Surface altitude at current position. */
+        public final float sealevel; /**< Altitude above sea level. */
+        public final float surface;
+
+        public AltitudeMessage(float seaLevel, float surface) {
+            this.sealevel = seaLevel;
+            this.surface = surface;
+        }
+
+        /**< Surface altitude at current position. */
+
+
+        public static AltitudeMessage from(byte[] bytes) {
+            float seaLevel = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+            float surfaceAlt = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+            return new AltitudeMessage(seaLevel, surfaceAlt);
+        }
     };
 
     /** An Apsides message. */
     public static class ApsidesMessage {
-        float periapsis; /**< Current vessel's orbital periapsis. */
-        float apoapsis; /**< Current vessel's orbital apoapsis. */
+        public final float periapsis; /**< Current vessel's orbital periapsis. */
+        public final float apoapsis; /**< Current vessel's orbital apoapsis. */
+
+        public ApsidesMessage(float periapsis, float apoapsis) {
+            this.periapsis = periapsis;
+            this.apoapsis = apoapsis;
+        }
+
+        public static ApsidesMessage from(byte[] bytes) {
+            float periapsis = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+            float apoapsis = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+            return new ApsidesMessage(periapsis, apoapsis);
+        }
     };
 
     /** An Apsides Time message. */
