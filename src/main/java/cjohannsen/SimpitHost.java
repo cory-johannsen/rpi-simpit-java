@@ -1,6 +1,10 @@
 package cjohannsen;
 
 import cjohannsen.protocol.*;
+import cjohannsen.protocol.Handler;
+import cjohannsen.protocol.InvalidPacketException;
+import cjohannsen.protocol.MessageType;
+import cjohannsen.protocol.Packet;
 import com.fazecast.jSerialComm.SerialPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +16,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
-
 @Component
 public class SimpitHost {
     static final Logger logger = LoggerFactory.getLogger(SimpitHost.class);
 
+    public static final int HANDSHAKE_ACK_MIN_LENGTH = 5;
     public static final byte HANDSHAKE_SYN = 0x00;
     public static final byte HANDSHAKE_ACK = 0x01;
     public static final byte HANDSHAKE_SYNACK = 0x02;
@@ -43,7 +47,7 @@ public class SimpitHost {
             0x00
     };
 
-    public static final long POLL_INTERVAL_MILLIS = 150;
+    public static final long POLL_INTERVAL_MILLIS = 75;
 
 
     private final SerialPort serialPort;
@@ -104,6 +108,7 @@ public class SimpitHost {
             while(ackMessage.getDatagram() != MessageType.Datagram.SYNC_MESSAGE) {
                 ackMessage = packetSource.next();
             }
+
             byte ackByte = ackMessage.getPayload()[0];
             logger.debug("ack byte: " + ackByte);
             if (ackByte == HANDSHAKE_ACK) {
@@ -148,6 +153,7 @@ public class SimpitHost {
         logger.info("Registering handler for " + type);
         handlers.put(type, handler);
     }
+
 
     private void setupDataPoller() {
         logger.info("Initializing KerbalSimpit. Starting serial port data poller.");

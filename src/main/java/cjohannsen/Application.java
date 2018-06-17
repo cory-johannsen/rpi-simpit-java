@@ -163,12 +163,76 @@ public class Application {
                 Arrays.stream(MessageType.Datagram.values()).forEach(simpitHost::disableChannel);
                 simpitHost.enableChannel(MessageType.Datagram.ALTITUDE_MESSAGE);
                 simpitHost.enableChannel(MessageType.Datagram.APSIDES_MESSAGE);
+                    logger.info("ECHO: " + new String(message));
+                    return true;
+                });
+                simpitHost.registerHandler(ALTITUDE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+                    logger.info("ALTITUDE_MESSAGE: " + Util.hexString(message));
+                    return true;
+                });
+//                simpitHost.registerHandler(APSIDES_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("APSIDES_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(LF_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("LF_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(LF_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("LF_STAGE_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(OX_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("OX_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(OX_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("OX_STAGE_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(SF_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("SF_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(SF_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("SF_STAGE_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(MONO_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("MONO_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(ELECTRIC_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("ELECTRIC_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(EVA_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("EVA_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(ORE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("ORE_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(AB_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("AB_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(AB_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("AB_STAGE_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
+//                simpitHost.registerHandler(VELOCITY_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+//                    logger.info("VELOCITY_MESSAGE: " + Util.hexString(message));
+//                    return true;
+//                });
 
                 logger.info("Initiating echo heartbeat.");
                 while (true) {
                     // Send an echo request.  A corresponding response should come back via the SimpitHost data listener
                     simpitHost.sendEchoRequest("rpi-simpit heartbeat");
                     Thread.sleep(Duration.ofSeconds(HEARTBEAT_FREQUENCY_SECONDS).toMillis());
+
                 }
             }
         };
