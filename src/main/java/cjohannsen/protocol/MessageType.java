@@ -1,5 +1,7 @@
 package cjohannsen.protocol;
 
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
+
 /** Constants for inbound and outbound message IDs.
  */
 public class MessageType {
@@ -62,7 +64,7 @@ public class MessageType {
         private final int value;
         Command(int value) { this.value = value; }
         public int getValue() { return value; }
-    };
+    }
 
     /** Datagram packets.
         IDs for packets that go from the game to devices.
@@ -130,9 +132,7 @@ public class MessageType {
         /** Action groups.
          MessageType on this channel contain a single byte representing the
          currently active action groups. A given action group can be checked
-         by performing a
-         <a href="http://playground.arduino.cc/Code/BitMath#bitwise_and">bitwise AND</a>
-         with the message. For example:
+         by performing a bitwise AND with the message. For example:
 
          \code
          if (msg & SAS_ACTION) {
@@ -189,7 +189,61 @@ public class MessageType {
         public boolean equals(Datagram d) {
             return d.value == this.value;
         }
-    };
+        public String printableString() {
+            switch (this) {
+                case SYNC_MESSAGE:
+                    return "SYNC";
+                case ECHO_REQ_MESSAGE:
+                    return "ECHO request";
+                case ECHO_RESP_MESSAGE:
+                    return "ECHO response";
+                case SCENE_CHANGE_MESSAGE:
+                    return "Scene change";
+                case ALTITUDE_MESSAGE:
+                    return "Altitude";
+                case APSIDES_MESSAGE:
+                    return "Apsides";
+                case LF_MESSAGE:
+                    return "Liquid Fuel";
+                case LF_STAGE_MESSAGE:
+                    return "Liquid Fuel (stage)";
+                case OX_MESSAGE:
+                    return "Oxidizer";
+                case OX_STAGE_MESSAGE:
+                    return "Oxidizer (stage)";
+                case SF_MESSAGE:
+                    return "Solid Fuel";
+                case SF_STAGE_MESSAGE:
+                    return "Solid Fuel (stage)";
+                case MONO_MESSAGE:
+                    return "Monopropellant";
+                case ELECTRIC_MESSAGE:
+                    return "Electric Charge";
+                case EVA_MESSAGE:
+                    return "EVA Monopropellant";
+                case ORE_MESSAGE:
+                    return "Ore";
+                case AB_MESSAGE:
+                    return "Ablator";
+                case AB_STAGE_MESSAGE:
+                    return "Ablator (stage)";
+                case VELOCITY_MESSAGE:
+                    return "Velocity";
+                case ACTIONSTATUS_MESSAGE:
+                    return "Actiongroup Status";
+                case APSIDESTIME_MESSAGE:
+                    return "Apsides Time";
+                case TARGETINFO_MESSAGE:
+                    return "Target";
+                case SOI_MESSAGE:
+                    return "Sphere of Influence";
+                case AIRSPEED_MESSAGE:
+                    return "Airspeed";
+                default:
+                    return "Undefined";
+            }
+        }
+    }
 
     /** Action Group Indexes
         These are used to mask out elements of an ACTIONSTATUS_MESSAGE.
@@ -213,6 +267,6 @@ public class MessageType {
         private final int id;
         ActionGroupIndexes(int id) { this.id = id; }
         public int getValue() { return id; }
-    };
+    }
 
 }

@@ -2,7 +2,6 @@ package cjohannsen;
 
 import cjohannsen.protocol.*;
 import cjohannsen.protocol.Handler;
-import cjohannsen.protocol.InvalidPacketException;
 import cjohannsen.protocol.MessageType;
 import cjohannsen.protocol.Packet;
 import com.fazecast.jSerialComm.SerialPort;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
@@ -20,7 +20,8 @@ import java.util.concurrent.Executors;
 public class SimpitHost {
     static final Logger logger = LoggerFactory.getLogger(SimpitHost.class);
 
-    public static final int HANDSHAKE_ACK_MIN_LENGTH = 5;
+    public static final int HANDSHAKE_RETRY_FREQUENCY_MILLIS = 5000;
+
     public static final byte HANDSHAKE_SYN = 0x00;
     public static final byte HANDSHAKE_ACK = 0x01;
     public static final byte HANDSHAKE_SYNACK = 0x02;
@@ -86,39 +87,31 @@ public class SimpitHost {
         //   0x02 SYNACK
         //   KERBALSIMPIT_VERSION
         //   0x00
-        long startTime = -1;
         boolean handshakeComplete = false;
+        long startTimeMillis = System.currentTimeMillis();
         while (!handshakeComplete) {
-            if (startTime == -1 || System.currentTimeMillis() - startTime > Duration.ofSeconds(10).toMillis()) {
-                logger.info("SimpitHost initiating handshake...");
-                byte[] message = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYN);
-                logger.trace(Util.hexString(message));
-                serialPort.writeBytes(message, message.length);
-                logger.info("Waiting for ACK...");
-                startTime = System.currentTimeMillis();
-            }
-            try {
-                Thread.sleep(POLL_INTERVAL_MILLIS);
-            } catch (InterruptedException e) {
-                // NO-OP
-                logger.error("Interrupted: " + e);
-            }
+            logger.info("SimpitHost initiating handshake...");
+            byte[] message = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYN);
+            logger.trace(Util.hexString(message));
+            serialPort.writeBytes(message, message.length);
+            logger.info("Waiting for ACK...");
 
-            Packet ackMessage = packetSource.next();
-            while(ackMessage.getDatagram() != MessageType.Datagram.SYNC_MESSAGE) {
-                ackMessage = packetSource.next();
+            while (System.currentTimeMillis() - startTimeMillis < HANDSHAKE_RETRY_FREQUENCY_MILLIS ) {
+                Optional<Packet> ackMessage = packetSource.next(Optional.of(new Integer(10000)));
+                if (ackMessage.isPresent() && ackMessage.get().getDatagram() == MessageType.Datagram.SYNC_MESSAGE) {
+                    byte ackByte = ackMessage.get().getPayload()[0];
+                    logger.debug("ack byte: " + ackByte);
+                    if (ackByte == HANDSHAKE_ACK) {
+                        logger.info("ACK received, sending SYNACK...");
+                        byte[] synack = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYNACK);
+                        logger.trace(Util.hexString(synack));
+                        serialPort.writeBytes(synack, 1);
+                    }
+                    setupDataPoller();
+                    return true;
+                }
             }
-
-            byte ackByte = ackMessage.getPayload()[0];
-            logger.debug("ack byte: " + ackByte);
-            if (ackByte == HANDSHAKE_ACK) {
-                logger.info("ACK received, sending SYNACK...");
-                byte[] synack = Packet.encodePacket(MessageType.Command.SYNC_MESSAGE, SYNACK);
-                logger.trace(Util.hexString(synack));
-                serialPort.writeBytes(synack, 1);
-            }
-            setupDataPoller();
-            return true;
+            startTimeMillis = System.currentTimeMillis();
         }
 
         return false;

@@ -1,6 +1,5 @@
 package cjohannsen.protocol;
 
-import cjohannsen.SimpitHost;
 import cjohannsen.Util;
 import com.fazecast.jSerialComm.SerialPort;
 import org.slf4j.Logger;
@@ -8,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.*;
 
 import static cjohannsen.protocol.PacketSource.ReceiveState.*;
@@ -38,14 +38,23 @@ public class PacketSource {
     }
 
     public Packet next() {
+        return next(Optional.empty()).get();
+    }
+
+    public Optional<Packet> next(Optional<Integer> timeoutMillis) {
         Packet packet = null;
         while(packet == null) {
             try {
-                packet = packets.take();
+                if (timeoutMillis.isPresent()) {
+                    packet = packets.poll(timeoutMillis.get(), TimeUnit.MILLISECONDS);
+                }
+                else {
+                    packet = packets.take();
+                }
             } catch (InterruptedException e) {
             }
         }
-        return packet;
+        return Optional.ofNullable(packet);
     }
 
     public void start() {
