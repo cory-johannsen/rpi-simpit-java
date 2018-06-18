@@ -73,111 +73,30 @@ public class Application {
             else {
                 logger.info("Handshaking success.");
 
-                Payload.AltitudeMessage altitudeMessage = new Payload.AltitudeMessage(0, 0);
-                Payload.ApsidesMessage apsidesMessage = new Payload.ApsidesMessage(0, 0);
-
-
                 logger.info("Registering datagram handlers.");
-                simpitHost.registerHandler(ECHO_RESP_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
+                simpitHost.registerHandler(ECHO_RESP_MESSAGE, (b) ->  null, (MessageType.Datagram type, byte[] message, Payload.Provider provider) -> {
                     logger.debug(MessageFormat.format("{0}: {1}", type.printableString(), new String(message).trim()));
                 });
-                simpitHost.registerHandler(ALTITUDE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.AltitudeMessage incomingAltitudeMessage = Payload.AltitudeMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(ALTITUDE_MESSAGE);
-                    if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(incomingAltitudeMessage)) {
-                        applicationState.setCachedDatagram(ALTITUDE_MESSAGE, incomingAltitudeMessage);
-                        logger.info(incomingAltitudeMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(APSIDES_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.ApsidesMessage incomingApsidesMessage = Payload.ApsidesMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(APSIDES_MESSAGE);
-                    if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(incomingApsidesMessage)) {
-                        applicationState.setCachedDatagram(APSIDES_MESSAGE, incomingApsidesMessage);
-                        logger.info(incomingApsidesMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(LF_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(LF_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(OX_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(OX_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(SF_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(SF_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(MONO_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(ELECTRIC_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(EVA_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(ORE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(AB_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(AB_STAGE_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    updateResourceDatagram(applicationState, type, message);
-                });
-                simpitHost.registerHandler(VELOCITY_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.VelocityMessage incomingVelocityMessage = Payload.VelocityMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(VELOCITY_MESSAGE);
-                    if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(incomingVelocityMessage)) {
-                        applicationState.setCachedDatagram(VELOCITY_MESSAGE, incomingVelocityMessage);
-                        logger.info(incomingVelocityMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(ACTIONSTATUS_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.ActionGroupMessage incomingActionGroupMessage = Payload.ActionGroupMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(ACTIONSTATUS_MESSAGE);
-                    if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(incomingActionGroupMessage)) {
-                        applicationState.setCachedDatagram(ACTIONSTATUS_MESSAGE, incomingActionGroupMessage);
-                        logger.info(incomingActionGroupMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(APSIDESTIME_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.ApsidesTimeMessage incomingApsidesTimesMessage = Payload.ApsidesTimeMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(APSIDESTIME_MESSAGE);
-                    if(!cachedDatagram.isPresent() || !cachedDatagram.get().equals(incomingApsidesTimesMessage)) {
-                        applicationState.setCachedDatagram(APSIDESTIME_MESSAGE, incomingApsidesTimesMessage);
-                        logger.info(incomingApsidesTimesMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(TARGETINFO_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.TargetMessage targetMessage = Payload.TargetMessage.from(message);
-                    logger.info(MessageFormat.format("Target - distance: {0} velocity: {1}", targetMessage.distance, targetMessage.velocity));
-                });
-                simpitHost.registerHandler(SOI_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.SphereOfInfluenceMessage sphereOfInfluenceMessage = Payload.SphereOfInfluenceMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(SOI_MESSAGE);
-                    if(!cachedDatagram.isPresent() || !cachedDatagram.get().equals(sphereOfInfluenceMessage)) {
-                        applicationState.setCachedDatagram(SOI_MESSAGE, sphereOfInfluenceMessage);
-                        logger.info(sphereOfInfluenceMessage.toString());
-                    }
-                });
-                simpitHost.registerHandler(AIRSPEED_MESSAGE, (MessageType.Datagram type, byte[] message) -> {
-                    Payload.AirspeedMessage airspeedMessage = Payload.AirspeedMessage.from(message);
-                    Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(AIRSPEED_MESSAGE);
-                    if(!cachedDatagram.isPresent() || !cachedDatagram.get().equals(airspeedMessage)) {
-                        applicationState.setCachedDatagram(AIRSPEED_MESSAGE, airspeedMessage);
-                        logger.info(airspeedMessage.toString());
-                    }
-                    logger.info(MessageFormat.format("Airspeed - indicated:{0} mach: {1}", airspeedMessage.indicatedAirSpeed, airspeedMessage.mach));
-                });
+                simpitHost.registerHandler(ALTITUDE_MESSAGE, Payload.AltitudeMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(APSIDES_MESSAGE, Payload.ApsidesMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(LF_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(LF_STAGE_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(OX_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(OX_STAGE_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(SF_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(SF_STAGE_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(MONO_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(ELECTRIC_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(EVA_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(ORE_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(AB_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(AB_STAGE_MESSAGE, Payload.ResourceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(VELOCITY_MESSAGE, Payload.VelocityMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(ACTIONSTATUS_MESSAGE, Payload.ActionGroupMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(APSIDESTIME_MESSAGE, Payload.ApsidesTimeMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(TARGETINFO_MESSAGE, Payload.TargetMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(SOI_MESSAGE, Payload.SphereOfInfluenceMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
+                simpitHost.registerHandler(AIRSPEED_MESSAGE, Payload.AirspeedMessage::from, (t, b, p) -> updateDatagram(applicationState, t, b, p));
 
                 logger.info("Subscribing to message channels.");
                 Arrays.stream(MessageType.Datagram.values()).filter((d) -> d != MessageType.Datagram.UNDEFINED).forEach(simpitHost::enableChannel);
@@ -191,13 +110,14 @@ public class Application {
         };
     }
 
-    private void updateResourceDatagram(final ApplicationState applicationState, final MessageType.Datagram type, final byte[] message) {
-        Payload.ResourceMessage resourceMessage = Payload.ResourceMessage.from(message);
+    private void updateDatagram(final ApplicationState applicationState, final MessageType.Datagram type, final byte[] message, final Payload.Provider provider) {
+        Payload datagram = provider.provide(message);
         Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(type);
-        if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(resourceMessage)) {
-            applicationState.setCachedDatagram(type, resourceMessage);
-            logger.info(MessageFormat.format("{0}: {1}", type, resourceMessage));
+        if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(datagram)) {
+            applicationState.setCachedDatagram(type, datagram);
+            logger.info(datagram.toString());
         }
+
     }
 
 }

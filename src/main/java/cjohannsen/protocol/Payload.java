@@ -5,6 +5,11 @@ import java.nio.ByteOrder;
 import java.text.MessageFormat;
 
 public abstract class Payload {
+
+    public interface Provider {
+        Payload provide(byte[] bytes);
+    }
+
     private final byte[] bytes;
 
     public abstract boolean equals(final Payload p);
@@ -12,7 +17,6 @@ public abstract class Payload {
     public byte[] getBytes() {
         return bytes;
     }
-
 
     private Payload(final byte[] bytes) {
         this.bytes = bytes;
@@ -24,13 +28,7 @@ public abstract class Payload {
         public final float sealevel; /**< Altitude above sea level. */
         public final float surface;  /**< Surface altitude at current position. */
 
-        public AltitudeMessage(float seaLevel, float surface) {
-            super(ByteBuffer.allocate(8).putFloat(seaLevel).putFloat(seaLevel).array());
-            this.sealevel = seaLevel;
-            this.surface = surface;
-        }
-
-        public AltitudeMessage(float seaLevel, float surface, byte[] bytes) {
+        private AltitudeMessage(float seaLevel, float surface, byte[] bytes) {
             super(bytes);
             this.sealevel = seaLevel;
             this.surface = surface;
@@ -50,7 +48,7 @@ public abstract class Payload {
         }
 
         public String toString() {
-            return MessageFormat.format("Altitude - Sea Level: {0}, Surface: {1}", sealevel, surface);
+            return MessageFormat.format("Sea Level: {0}, Surface: {1}", sealevel, surface);
         }
     }
 
@@ -59,13 +57,7 @@ public abstract class Payload {
         public final float periapsis; /**< Current vessel's orbital periapsis. */
         public final float apoapsis; /**< Current vessel's orbital apoapsis. */
 
-        public ApsidesMessage(float periapsis, float apoapsis) {
-            super(ByteBuffer.allocate(8).putFloat(periapsis).putFloat(apoapsis).array());
-            this.periapsis = periapsis;
-            this.apoapsis = apoapsis;
-        }
-
-        public ApsidesMessage(float periapsis, float apoapsis, byte[] bytes) {
+        private ApsidesMessage(float periapsis, float apoapsis, byte[] bytes) {
             super(bytes);
             this.periapsis = periapsis;
             this.apoapsis = apoapsis;
@@ -86,7 +78,7 @@ public abstract class Payload {
         }
 
         public String toString() {
-            return MessageFormat.format("Apsides - Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
+            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
         }
     }
 
@@ -95,13 +87,7 @@ public abstract class Payload {
         public final int periapsis; /** (32-bits) Time until the current vessel's orbital periapsis, in seconds. */
         public final int apoapsis; /** (32-bits) Time until the current vessel's orbital apoapsis, in seconds. */
 
-        public ApsidesTimeMessage(final int periapsis, final int apoapsis) {
-            super(ByteBuffer.allocate(8).putFloat(periapsis).putFloat(apoapsis).array());
-            this.periapsis = periapsis;
-            this.apoapsis = apoapsis;
-        }
-
-        public ApsidesTimeMessage(final int periapsis, final int apoapsis, final byte[] bytes) {
+        private ApsidesTimeMessage(final int periapsis, final int apoapsis, final byte[] bytes) {
             super(bytes);
             this.periapsis = periapsis;
             this.apoapsis = apoapsis;
@@ -122,7 +108,7 @@ public abstract class Payload {
         }
 
         public String toString() {
-            return MessageFormat.format("Apsides Time - Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
+            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
         }
     }
 
@@ -132,13 +118,7 @@ public abstract class Payload {
         public final float total; /**< Maximum capacity of the resource. */
         public final float available; /**< Current resource level. */
 
-        public ResourceMessage(float total, float available) {
-            super(ByteBuffer.allocate(8).putFloat(total).putFloat(available).array());
-            this.total = total;
-            this.available = available;
-        }
-
-        public ResourceMessage(float total, float available, final byte[] bytes) {
+        private ResourceMessage(float total, float available, final byte[] bytes) {
             super(bytes);
             this.total = total;
             this.available = available;
@@ -147,7 +127,7 @@ public abstract class Payload {
         public static ResourceMessage from(byte[] bytes) {
             float total = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float available = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
-            return new ResourceMessage(total, available);
+            return new ResourceMessage(total, available, bytes);
         }
 
         @Override
@@ -170,14 +150,7 @@ public abstract class Payload {
         public final float surface; /**< Surface velocity. */
         public final float vertical; /**< Vertical velocity. */
 
-        public VelocityMessage(float orbital, float surface, float vertical) {
-            super(ByteBuffer.allocate(8).putFloat(orbital).putFloat(surface).putFloat(vertical).array());
-            this.orbital = orbital;
-            this.surface = surface;
-            this.vertical = vertical;
-        }
-
-        public VelocityMessage(float orbital, float surface, float vertical, final byte[] bytes) {
+        private VelocityMessage(float orbital, float surface, float vertical, final byte[] bytes) {
             super(bytes);
             this.orbital = orbital;
             this.surface = surface;
@@ -201,7 +174,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return "Velocity - orbital: " + orbital + " surface: " + surface + " vertical: " + vertical;
+            return "orbital: " + orbital + " surface: " + surface + " vertical: " + vertical;
         }
     }
 
@@ -210,13 +183,7 @@ public abstract class Payload {
         public final float distance; /**< Distance to target. */
         public final float velocity; /**< Velocity relative to target. */
 
-        public TargetMessage(float distance, float velocity) {
-            super(ByteBuffer.allocate(8).putFloat(distance).putFloat(velocity).array());
-            this.distance = distance;
-            this.velocity = velocity;
-        }
-
-        public TargetMessage(float distance, float velocity, final byte[] bytes) {
+        private TargetMessage(float distance, float velocity, final byte[] bytes) {
             super(bytes);
             this.distance = distance;
             this.velocity = velocity;
@@ -224,7 +191,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return MessageFormat.format("Target - distance: {0} velocity: {1}", distance, velocity);
+            return MessageFormat.format("distance: {0} velocity: {1}", distance, velocity);
         }
 
         @Override
@@ -247,13 +214,7 @@ public abstract class Payload {
         public final float indicatedAirSpeed; /**< Indicated airspeed. */
         public final float mach; /**< Mach number. */
 
-        public AirspeedMessage(float indicatedAirSpeed, float mach) {
-            super(ByteBuffer.allocate(8).putFloat(indicatedAirSpeed).putFloat(mach).array());
-            this.indicatedAirSpeed = indicatedAirSpeed;
-            this.mach = mach;
-        }
-
-        public AirspeedMessage(float indicatedAirSpeed, float mach, final byte[] bytes) {
+        private AirspeedMessage(float indicatedAirSpeed, float mach, final byte[] bytes) {
             super(bytes);
             this.indicatedAirSpeed = indicatedAirSpeed;
             this.mach = mach;
@@ -261,7 +222,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return MessageFormat.format("Air speed - Indicated: {0} MACH: {1}", indicatedAirSpeed, mach);
+            return MessageFormat.format("Indicated: {0} MACH: {1}", indicatedAirSpeed, mach);
         }
 
         @Override
@@ -280,9 +241,9 @@ public abstract class Payload {
     }
 
     public static class ActionGroupMessage extends Payload {
-        private final byte actionGroupStatus;
+        public final byte actionGroupStatus;
 
-        public ActionGroupMessage(byte actionGroupStatus, byte[] bytes) {
+        private ActionGroupMessage(byte actionGroupStatus, byte[] bytes) {
             super(bytes);
             this.actionGroupStatus = actionGroupStatus;
         }
@@ -296,7 +257,14 @@ public abstract class Payload {
             boolean sas = (actionGroupStatus & MessageType.ActionGroupIndexes.SAS_ACTION.getValue()) > 0;
             boolean brakes = (actionGroupStatus & MessageType.ActionGroupIndexes.BRAKES_ACTION.getValue()) > 0;
             boolean abort = (actionGroupStatus & MessageType.ActionGroupIndexes.ABORT_ACTION.getValue()) > 0;
-            return MessageFormat.format("Action Group Status: stage: {0} gear: {1} lights: {2} rcs: {3} sas: {4} brakes: {5} abort: {6}", stage, gear, lights, rcs, sas, brakes, abort);
+            return MessageFormat.format("stage: {0} gear: {1} lights: {2} rcs: {3} sas: {4} brakes: {5} abort: {6}",
+                    stage ? "ON" : "OFF",
+                    gear ? "ON" : "OFF",
+                    lights ? "ON" : "OFF",
+                    rcs ? "ON" : "OFF",
+                    sas ? "ON" : "OFF",
+                    brakes ? "ON" : "OFF",
+                    abort ? "ON" : "OFF");
         }
 
         @Override
@@ -312,14 +280,14 @@ public abstract class Payload {
     public static class SphereOfInfluenceMessage extends Payload {
         private final String sphereOfInfluenceMessage;
 
-        public SphereOfInfluenceMessage(String sphereOfInfluenceMessage, byte[] bytes) {
+        private SphereOfInfluenceMessage(String sphereOfInfluenceMessage, byte[] bytes) {
             super(bytes);
             this.sphereOfInfluenceMessage = sphereOfInfluenceMessage;
         }
 
         @Override
         public String toString() {
-            return MessageFormat.format("Sphere of Influence: {0}", sphereOfInfluenceMessage);
+            return sphereOfInfluenceMessage;
         }
 
         @Override
@@ -347,7 +315,7 @@ public abstract class Payload {
          */
         public final byte mask;
 
-        public RotationMessage(final int pitch, final int roll, int yaw, byte mask) {
+        private RotationMessage(final int pitch, final int roll, int yaw, byte mask) {
             this.pitch = pitch;
             this.roll = roll;
             this.yaw = yaw;
@@ -378,7 +346,7 @@ public abstract class Payload {
          */
         public final byte mask;
 
-        public TranslationMessage(final int x, final int y, int z, byte mask) {
+        private TranslationMessage(final int x, final int y, int z, byte mask) {
             this.x = x;
             this.y = y;
             this.z = z;
@@ -407,7 +375,7 @@ public abstract class Payload {
          */
         public final  byte mask;
 
-        public WheelMessage(final int steer, final int throttle, byte mask) {
+        private WheelMessage(final int steer, final int throttle, byte mask) {
             this.steer = steer;
             this.throttle = throttle;
             this.mask = mask;

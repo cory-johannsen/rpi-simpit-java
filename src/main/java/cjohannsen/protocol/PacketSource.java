@@ -54,6 +54,9 @@ public class PacketSource {
             } catch (InterruptedException e) {
             }
         }
+        if (packet != null) {
+            logger.trace("Packet: " + packet.getDatagram());
+        }
         return Optional.ofNullable(packet);
     }
 
