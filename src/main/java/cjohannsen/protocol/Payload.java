@@ -4,29 +4,71 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.MessageFormat;
 
+/**
+ * KerbalSimpit datagram payload types.  Each of these classes directly maps to an encoded message type published
+ * by the KebalSimpit plugin.
+ */
 public abstract class Payload {
 
+    /**
+     * A functional interface for a Payload provider - an object that can provide a Payload given a raw array of bytes.
+     */
     public interface Provider {
         Payload provide(byte[] bytes);
     }
 
+    public static final double MAX_DELTA = 0.000001;
+
     private final byte[] bytes;
 
-    public abstract boolean equals(final Payload p);
+    @Override
+    public boolean equals(final Object o) {
+        return this.equals((Payload) o);
+    }
 
+    abstract boolean equals(final Payload p);
+
+    public abstract String toString();
+
+    /**
+     * Return the low-level byte array that backs this payload.
+     * @return the low-level byte array that backs this payload.
+     */
     public byte[] getBytes() {
         return bytes;
     }
 
     private Payload(final byte[] bytes) {
         this.bytes = bytes;
+    }
 
+    private static final boolean equalWithDelta(float a, float b) {
+        return equalWithDelta(a, b, MAX_DELTA)
+;    }
+
+    private static final boolean equalWithDelta(float a, float b, double delta) {
+        return Math.abs(a - b) <= MAX_DELTA;
     }
 
     /** An Altitude message. */
     public static class AltitudeMessage extends Payload {
-        public final float sealevel; /**< Altitude above sea level. */
-        public final float surface;  /**< Surface altitude at current position. */
+        public final float sealevel; /**< Altitude above sea level. 4 bytes. */
+        public final float surface;  /**< Surface altitude at current position. 4 bytes. */
+
+        @Override
+        boolean equals(final Payload p) {
+            if (p instanceof AltitudeMessage) {
+                boolean sealevelEqual = equalWithDelta(sealevel, ((AltitudeMessage)p).sealevel);
+                boolean surfaceEqual = equalWithDelta(surface, ((AltitudeMessage)p).surface);
+                return sealevelEqual && surfaceEqual;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return MessageFormat.format("Sea Level: {0}, Surface: {1}", sealevel, surface);
+        }
 
         private AltitudeMessage(float seaLevel, float surface, byte[] bytes) {
             super(bytes);
@@ -39,23 +81,26 @@ public abstract class Payload {
             float surfaceAlt = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             return new AltitudeMessage(seaLevel, surfaceAlt, bytes);
         }
-
-        public boolean equals(final Payload p) {
-            if (p instanceof AltitudeMessage) {
-                return sealevel == ((AltitudeMessage)p).sealevel && surface == ((AltitudeMessage)p).surface;
-            }
-            return false;
-        }
-
-        public String toString() {
-            return MessageFormat.format("Sea Level: {0}, Surface: {1}", sealevel, surface);
-        }
     }
 
     /** An Apsides message. */
     public static class ApsidesMessage extends Payload {
         public final float periapsis; /**< Current vessel's orbital periapsis. */
         public final float apoapsis; /**< Current vessel's orbital apoapsis. */
+
+
+        @Override
+        boolean equals(Payload p) {
+            if (p instanceof ApsidesMessage) {
+                return periapsis == ((ApsidesMessage)p).periapsis && apoapsis == ((ApsidesMessage)p).apoapsis;
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
+        }
 
         private ApsidesMessage(float periapsis, float apoapsis, byte[] bytes) {
             super(bytes);
@@ -67,18 +112,6 @@ public abstract class Payload {
             float periapsis = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float apoapsis = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             return new ApsidesMessage(periapsis, apoapsis, bytes);
-        }
-
-        @Override
-        public boolean equals(Payload p) {
-            if (p instanceof ApsidesMessage) {
-                return periapsis == ((ApsidesMessage)p).periapsis && apoapsis == ((ApsidesMessage)p).apoapsis;
-            }
-            return false;
-        }
-
-        public String toString() {
-            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
         }
     }
 
@@ -100,13 +133,14 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             if (p instanceof ApsidesTimeMessage) {
                 return periapsis == ((ApsidesTimeMessage)p).periapsis && apoapsis == ((ApsidesTimeMessage)p).apoapsis;
             }
             return false;
         }
 
+        @Override
         public String toString() {
             return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
         }
@@ -131,7 +165,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             if (p instanceof ResourceMessage) {
                 return total == ((ResourceMessage)p).total && available == ((ResourceMessage)p).available;
             }
@@ -165,7 +199,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             if (p instanceof VelocityMessage) {
                 return orbital == ((VelocityMessage)p).orbital && surface == ((VelocityMessage)p).surface && vertical == ((VelocityMessage)p).vertical;
             }
@@ -195,7 +229,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             if (p instanceof TargetMessage) {
                 return distance == ((TargetMessage)p).distance && velocity == ((TargetMessage)p).velocity;
             }
@@ -226,7 +260,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             if (p instanceof AirspeedMessage) {
                 return indicatedAirSpeed == ((AirspeedMessage)p).indicatedAirSpeed && indicatedAirSpeed == ((AirspeedMessage)p).mach;
             }
@@ -268,7 +302,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             return (p instanceof ActionGroupMessage) && (actionGroupStatus == ((ActionGroupMessage) p).actionGroupStatus);
         }
 
@@ -291,7 +325,7 @@ public abstract class Payload {
         }
 
         @Override
-        public boolean equals(Payload p) {
+        boolean equals(Payload p) {
             return (p instanceof SphereOfInfluenceMessage) && (sphereOfInfluenceMessage.equals(((SphereOfInfluenceMessage) p).sphereOfInfluenceMessage));
         }
 
