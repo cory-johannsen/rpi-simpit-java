@@ -6,9 +6,11 @@ This application serves as a replacement client for the [KerbalSimpit Arduino li
 
 # Status
 
-As of 6/18/2018, the application can SYNC with KerbalSimpit, subcribe to all telemtry data channels, and decode all incoming datagram into their domain specific types.
+As of 6/18/2018, the application can SYNC with KerbalSimpit, subcribe to all telemetry data channels, and decode all incoming datagram into their domain specific types.
 
-Upstream commands are currently limited to ECHO and channel subscription, but remaining commands will be implemented next.
+Upstream commands are currently limited to ECHO, channel subscription, and action group control (standard and custom), but remaining commands will be implemented next.
+
+There's shockingly little test coverage.  I'll be adding that as I go.
 
 # To Run
 
