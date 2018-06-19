@@ -165,6 +165,56 @@ public class SimpitHost {
         handlers.put(type, new HandlerAndProvider(handler, provider));
     }
 
+    public void activateStandardActionGroup(MessageType.ActionGroupIndex index) {
+        logger.info("Activating standard action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.AGACTIVATE_MESSAGE, (byte) index.getValue());
+        logger.debug("Sending activate standard action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+    }
+
+    public void deactivateStandardActionGroup(MessageType.ActionGroupIndex index) {
+        logger.info("Deactivating standard action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.AGDEACTIVATE_MESSAGE, (byte) index.getValue());
+        logger.debug("Sending deactivate standard action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+    }
+
+    public void toggleStandardActionGroup(MessageType.ActionGroupIndex index) {
+        logger.info("Toggling standard action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.AGTOGGLE_MESSAGE, (byte) index.getValue());
+        logger.debug("Sending toggle standard action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+    }
+
+    public void activateCustomActionGroup(int index) {
+        logger.info("Activating custom action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.CAGACTIVATE_MESSAGE, (byte) index);
+        logger.debug("Sending activate custom action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+    }
+
+    public void deactivateCustomActionGroup(int index) {
+        logger.info("Deactivating custom action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.CAGDEACTIVATE_MESSAGE, (byte) index);
+        logger.debug("Sending deactivate custom action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+
+    }
+
+    public void toggleCustomActionGroup(int index) {
+        logger.info("Toggling custom action group " + index);
+        byte[] buffer = Packet.encodePacket(MessageType.Command.CAGTOGGLE_MESSAGE, (byte) index);
+        logger.debug("Sending toggle custom action group request: " + Util.hexString(buffer));
+        int bytesWritten = serialPort.writeBytes(buffer, buffer.length);
+        logger.trace("Wrote " + bytesWritten + " bytes successfully.");
+    }
+
+
 
     private void setupDataPoller() {
         logger.info("Initializing KerbalSimpit. Starting serial port data poller.");

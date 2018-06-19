@@ -284,13 +284,13 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            boolean stage = (actionGroupStatus & MessageType.ActionGroupIndexes.STAGE_ACTION.getValue()) > 0;
-            boolean gear = (actionGroupStatus & MessageType.ActionGroupIndexes.GEAR_ACTION.getValue()) > 0;
-            boolean lights = (actionGroupStatus & MessageType.ActionGroupIndexes.LIGHT_ACTION.getValue()) > 0;
-            boolean rcs = (actionGroupStatus & MessageType.ActionGroupIndexes.RCS_ACTION.getValue()) > 0;
-            boolean sas = (actionGroupStatus & MessageType.ActionGroupIndexes.SAS_ACTION.getValue()) > 0;
-            boolean brakes = (actionGroupStatus & MessageType.ActionGroupIndexes.BRAKES_ACTION.getValue()) > 0;
-            boolean abort = (actionGroupStatus & MessageType.ActionGroupIndexes.ABORT_ACTION.getValue()) > 0;
+            boolean stage = (actionGroupStatus & MessageType.ActionGroupIndex.STAGE_ACTION.getValue()) > 0;
+            boolean gear = (actionGroupStatus & MessageType.ActionGroupIndex.GEAR_ACTION.getValue()) > 0;
+            boolean lights = (actionGroupStatus & MessageType.ActionGroupIndex.LIGHT_ACTION.getValue()) > 0;
+            boolean rcs = (actionGroupStatus & MessageType.ActionGroupIndex.RCS_ACTION.getValue()) > 0;
+            boolean sas = (actionGroupStatus & MessageType.ActionGroupIndex.SAS_ACTION.getValue()) > 0;
+            boolean brakes = (actionGroupStatus & MessageType.ActionGroupIndex.BRAKES_ACTION.getValue()) > 0;
+            boolean abort = (actionGroupStatus & MessageType.ActionGroupIndex.ABORT_ACTION.getValue()) > 0;
             return MessageFormat.format("stage: {0} gear: {1} lights: {2} rcs: {3} sas: {4} brakes: {5} abort: {6}",
                     stage ? "ON" : "OFF",
                     gear ? "ON" : "OFF",

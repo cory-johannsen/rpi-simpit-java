@@ -115,7 +115,7 @@ public class Application {
         Optional<Payload> cachedDatagram = applicationState.getCachedDatagram(type);
         if (!cachedDatagram.isPresent() || !cachedDatagram.get().equals(datagram)) {
             applicationState.setCachedDatagram(type, datagram);
-            logger.info(datagram.toString());
+            logger.info(type + " - " + datagram.toString());
         }
 
     }

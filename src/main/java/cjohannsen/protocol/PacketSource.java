@@ -135,7 +135,9 @@ public class PacketSource {
                             complete = true;
                             break;
                         }
-                        buffer[bufferIndex++] = incomingBytes[i];
+                        if (bufferIndex <= Packet.PACKET_SIZE) {
+                            buffer[bufferIndex++] = incomingBytes[i];
+                        }
                         payloadBytesRead++;
                         break;
                 }
