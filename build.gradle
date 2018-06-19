@@ -26,7 +26,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
     compile('com.fazecast:jSerialComm:2.0.2')
     
     testCompile("org.springframework.boot:spring-boot-starter-test")

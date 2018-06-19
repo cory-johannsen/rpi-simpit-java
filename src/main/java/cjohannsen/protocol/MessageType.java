@@ -1,7 +1,5 @@
 package cjohannsen.protocol;
 
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
-
 /** Constants for inbound and outbound message IDs.
  */
 public class MessageType {
@@ -248,7 +246,7 @@ public class MessageType {
     /** Action Group Indexes
         These are used to mask out elements of an ACTIONSTATUS_MESSAGE.
      */
-    public enum ActionGroupIndexes {
+    public enum ActionGroupIndex {
         /** Bitmask for the Stage action group. */
         STAGE_ACTION(1),
         /** Bitmask for the Gear action group. */
@@ -265,7 +263,7 @@ public class MessageType {
         ABORT_ACTION(64);
 
         private final int id;
-        ActionGroupIndexes(int id) { this.id = id; }
+        ActionGroupIndex(int id) { this.id = id; }
         public int getValue() { return id; }
     }
 

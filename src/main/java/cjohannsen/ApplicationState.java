@@ -26,6 +26,9 @@ public class ApplicationState {
     }
 
     public String toString() {
+        if (dataCache.isEmpty()) {
+            return "Status: Uninitialized";
+        }
         StringBuilder b = new StringBuilder();
         b.append("Status:\r\n");
         dataCache.forEach((d,p) -> b.append(d.printableString() + " - " + p.toString() + "\r\n"));
