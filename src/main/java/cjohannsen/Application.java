@@ -128,9 +128,9 @@ public class Application {
                 stageButton.setDebounce(STAGE_DEBOUNCE_MILLIS);
                 stageButton.addListener((GpioPinListenerDigital) event -> {
                     if (event.getState().isLow()) {
-                        logger.info("Stage button activated.  Staging is " + (applicationState.getStageEnabled() ? "ENABLED" : "DISABLED"));
-                        if (applicationState.getStageEnabled()) {
-                            simpitHost.toggleStandardActionGroup(MessageType.ActionGroupIndex.RCS_ACTION);
+                        logger.info("Stage button activated.  Staging is " + (applicationState.isStageEnabled() ? "ENABLED" : "DISABLED"));
+                        if (applicationState.isStageEnabled()) {
+                            simpitHost.activateStandardActionGroup(MessageType.ActionGroupIndex.STAGE_ACTION);
                         }
                     }
                 });
@@ -138,8 +138,18 @@ public class Application {
                 GpioPinDigitalInput stageEnableSwitch = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_02, "Stage Enable Switch", PinPullResistance.PULL_UP);
                 stageEnableSwitch.setDebounce(STAGE_DEBOUNCE_MILLIS);
                 stageEnableSwitch.addListener((GpioPinListenerDigital) event -> {
-                    logger.info(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = " + event.getState());
                     applicationState.setStageEnabled(stageEnableSwitch.isLow());
+                });
+
+                GpioPinDigitalInput rcsEnableSwitch = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_03, "RCS Enable Switch", PinPullResistance.PULL_UP);
+                rcsEnableSwitch.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                rcsEnableSwitch.addListener((GpioPinListenerDigital) event -> {
+                    applicationState.setRcsEnabled(rcsEnableSwitch.isLow());
+                    if (rcsEnableSwitch.isLow()) {
+                        simpitHost.activateStandardActionGroup(MessageType.ActionGroupIndex.RCS_ACTION);
+                    } else {
+                        simpitHost.deactivateStandardActionGroup(MessageType.ActionGroupIndex.RCS_ACTION);
+                    }
                 });
             }
         };

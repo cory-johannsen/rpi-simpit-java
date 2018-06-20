@@ -15,6 +15,7 @@ public class ApplicationState {
     private final Map<MessageType.Datagram, Payload> dataCache = new ConcurrentHashMap<>();
 
     private AtomicBoolean stageEnabled = new AtomicBoolean(false);
+    private AtomicBoolean rcsEnabled = new AtomicBoolean(false);
 
     @Autowired
     public ApplicationState() {
@@ -28,12 +29,20 @@ public class ApplicationState {
         dataCache.put(type, payload);
     }
 
-    public boolean getStageEnabled() {
+    public boolean isStageEnabled() {
         return stageEnabled.get();
     }
 
     public void setStageEnabled(boolean stageEnabled) {
         this.stageEnabled.set(stageEnabled);
+    }
+
+    public boolean isRcsEnabled() {
+        return rcsEnabled.get();
+    }
+
+    public void setRcsEnabled(boolean rcsEnabled) {
+        this.rcsEnabled.set(rcsEnabled);
     }
 
     public String toString() {
