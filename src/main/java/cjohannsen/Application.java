@@ -33,7 +33,7 @@ public class Application {
     static final Logger logger = LoggerFactory.getLogger(Application.class);
     public static final int HEARTBEAT_FREQUENCY_SECONDS = 60;
     public static final int BAUD_RATE = 57600;
-    public static final int STAGE_DEBOUNCE_MILLIS = 100;
+    public static final int GPIO_DEBOUNCE_MILLIS = 100;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -125,7 +125,7 @@ public class Application {
                 logger.info("Setting up a GPIO listener for STAGE control");
 
                 GpioPinDigitalInput stageButton = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_01, "Stage Button", PinPullResistance.PULL_UP);
-                stageButton.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                stageButton.setDebounce(GPIO_DEBOUNCE_MILLIS);
                 stageButton.addListener((GpioPinListenerDigital) event -> {
                     if (event.getState().isLow()) {
                         logger.info("Stage button activated.  Staging is " + (applicationState.isStageEnabled() ? "ENABLED" : "DISABLED"));
@@ -136,13 +136,13 @@ public class Application {
                 });
 
                 GpioPinDigitalInput stageEnableSwitch = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_02, "Stage Enable Switch", PinPullResistance.PULL_UP);
-                stageEnableSwitch.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                stageEnableSwitch.setDebounce(GPIO_DEBOUNCE_MILLIS);
                 stageEnableSwitch.addListener((GpioPinListenerDigital) event -> {
                     applicationState.setStageEnabled(stageEnableSwitch.isLow());
                 });
 
                 GpioPinDigitalInput rcsEnableSwitch = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_03, "RCS Enable Switch", PinPullResistance.PULL_UP);
-                rcsEnableSwitch.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                rcsEnableSwitch.setDebounce(GPIO_DEBOUNCE_MILLIS);
                 rcsEnableSwitch.addListener((GpioPinListenerDigital) event -> {
                     applicationState.setRcsEnabled(rcsEnableSwitch.isLow());
                     if (rcsEnableSwitch.isLow()) {

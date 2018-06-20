@@ -67,7 +67,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return MessageFormat.format("Sea Level: {0}, Surface: {1}", sealevel, surface);
+            return MessageFormat.format("Sea Level: {0} m, Surface: {1} m", sealevel, surface);
         }
 
         private AltitudeMessage(float seaLevel, float surface, byte[] bytes) {
@@ -102,7 +102,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
+            return MessageFormat.format("Periapsis: {0} m, Apoapsis: {1} m", periapsis, apoapsis);
         }
 
         private ApsidesMessage(float periapsis, float apoapsis, byte[] bytes) {
@@ -112,6 +112,9 @@ public abstract class Payload {
         }
 
         public static ApsidesMessage from(byte[] bytes) {
+            if (bytes.length < 8) {
+                throw new IllegalArgumentException("Not enough bytes.  8 required. " + bytes.length + " sent.");
+            }
             float periapsis = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float apoapsis = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             return new ApsidesMessage(periapsis, apoapsis, bytes);
@@ -130,6 +133,9 @@ public abstract class Payload {
         }
 
         public static ApsidesTimeMessage from(byte[] bytes) {
+            if (bytes.length < 8) {
+                throw new IllegalArgumentException("Not enough bytes.  8 required. " + bytes.length + " sent.");
+            }
             int periapsis = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             int apoapsis = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
             return new ApsidesTimeMessage(periapsis, apoapsis, bytes);
@@ -145,7 +151,7 @@ public abstract class Payload {
 
         @Override
         public String toString() {
-            return MessageFormat.format("Periapsis: {0}, apoapsis: {1}", periapsis, apoapsis);
+            return MessageFormat.format("Periapsis: {0} s, Apoapsis: {1} s", periapsis, apoapsis);
         }
     }
 
@@ -162,6 +168,9 @@ public abstract class Payload {
         }
 
         public static ResourceMessage from(byte[] bytes) {
+            if (bytes.length < 8) {
+                throw new IllegalArgumentException("Not enough bytes.  8 required. " + bytes.length + " sent.");
+            }
             float total = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float available = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             return new ResourceMessage(total, available, bytes);
@@ -195,6 +204,9 @@ public abstract class Payload {
         }
 
         public static VelocityMessage from(byte[] bytes) {
+            if (bytes.length < 12) {
+                throw new IllegalArgumentException("Not enough bytes.  12 required. " + bytes.length + " sent.");
+            }
             float orbital = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float surface = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float vertical = ByteBuffer.wrap(bytes, 8, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
