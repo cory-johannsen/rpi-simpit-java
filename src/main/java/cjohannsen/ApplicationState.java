@@ -8,10 +8,13 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class ApplicationState {
     private final Map<MessageType.Datagram, Payload> dataCache = new ConcurrentHashMap<>();
+
+    private AtomicBoolean stageEnabled = new AtomicBoolean(false);
 
     @Autowired
     public ApplicationState() {
@@ -23,6 +26,14 @@ public class ApplicationState {
 
     public void setCachedDatagram(MessageType.Datagram type, Payload payload) {
         dataCache.put(type, payload);
+    }
+
+    public boolean getStageEnabled() {
+        return stageEnabled.get();
+    }
+
+    public void setStageEnabled(boolean stageEnabled) {
+        this.stageEnabled.set(stageEnabled);
     }
 
     public String toString() {

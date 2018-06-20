@@ -4,6 +4,8 @@ import cjohannsen.protocol.MessageType;
 import cjohannsen.protocol.PacketSource;
 import cjohannsen.protocol.Payload;
 import com.fazecast.jSerialComm.SerialPort;
+import com.pi4j.io.gpio.*;
+import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -22,15 +24,23 @@ import static cjohannsen.protocol.MessageType.Datagram.*;
 
 @SpringBootApplication
 public class Application {
+
+
+    static {
+        System.setProperty("pi4j.linking", "dynamic");
+    }
+
     static final Logger logger = LoggerFactory.getLogger(Application.class);
     public static final int HEARTBEAT_FREQUENCY_SECONDS = 60;
-    public static final int BAUD_RATE = 9600;
+    public static final int BAUD_RATE = 57600;
+    public static final int STAGE_DEBOUNCE_MILLIS = 100;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
-    @Bean SerialPort serialPort() {
+    @Bean
+    SerialPort serialPort() {
         logger.info("*************************");
         logger.info("Retrieving serial port - ");
 
@@ -57,6 +67,11 @@ public class Application {
     }
 
     @Bean
+    GpioController gpioController() {
+        return GpioFactory.getInstance();
+    }
+
+    @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
             logger.info("Initializing SimpitHost...");
@@ -64,6 +79,7 @@ public class Application {
             PacketSource packetSource = ctx.getBean(PacketSource.class);
             SimpitHost simpitHost = ctx.getBean(SimpitHost.class);
             ApplicationState applicationState = ctx.getBean(ApplicationState.class);
+            GpioController gpioController = ctx.getBean(GpioController.class);
             packetSource.start();
 
             final boolean handshakeSuccess = simpitHost.handshake();
@@ -106,6 +122,25 @@ public class Application {
 
                 Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> logger.info(applicationState.toString()), 0, 10, TimeUnit.SECONDS);
 
+                logger.info("Setting up a GPIO listener for STAGE control");
+
+                GpioPinDigitalInput stageButton = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_01, "Stage Button", PinPullResistance.PULL_UP);
+                stageButton.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                stageButton.addListener((GpioPinListenerDigital) event -> {
+                    if (event.getState().isLow()) {
+                        logger.info("Stage button activated.  Staging is " + (applicationState.getStageEnabled() ? "ENABLED" : "DISABLED"));
+                        if (applicationState.getStageEnabled()) {
+                            simpitHost.toggleStandardActionGroup(MessageType.ActionGroupIndex.RCS_ACTION);
+                        }
+                    }
+                });
+
+                GpioPinDigitalInput stageEnableSwitch = gpioController.provisionDigitalInputPin(RaspiPin.GPIO_02, "Stage Enable Switch", PinPullResistance.PULL_UP);
+                stageEnableSwitch.setDebounce(STAGE_DEBOUNCE_MILLIS);
+                stageEnableSwitch.addListener((GpioPinListenerDigital) event -> {
+                    logger.info(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = " + event.getState());
+                    applicationState.setStageEnabled(stageEnableSwitch.isLow());
+                });
             }
         };
     }
@@ -119,5 +154,6 @@ public class Application {
         }
 
     }
+
 
 }

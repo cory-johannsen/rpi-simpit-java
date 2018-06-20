@@ -77,6 +77,9 @@ public abstract class Payload {
         }
 
         public static AltitudeMessage from(byte[] bytes) {
+            if (bytes.length < 8) {
+                throw new IllegalArgumentException("Not enough bytes.  8 required. " + bytes.length + " sent.");
+            }
             float seaLevel = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             float surfaceAlt = ByteBuffer.wrap(bytes, 4, 4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
             return new AltitudeMessage(seaLevel, surfaceAlt, bytes);

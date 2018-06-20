@@ -22,6 +22,24 @@ public class PayloadTest {
     }
 
     @Test
+    public void altitudeMessage_from_fails() {
+        final float sealevel = 123.456f;
+        byte[] bytes = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putFloat(sealevel).array();
+        Payload.AltitudeMessage message = Payload.AltitudeMessage.from(bytes);
+        assertEquals(sealevel, message.sealevel, MAX_DELTA);
+    }
+
+    @Test
+    public void altitudeMessage_equals_fails() {
+        final float sealevel = 123.456f;
+        final float surface = 234.567f;
+        byte[] bytes = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).putFloat(sealevel).putFloat(surface).array();
+        Payload.AltitudeMessage messageA = Payload.AltitudeMessage.from(bytes);
+        Payload.AltitudeMessage messageB = Payload.AltitudeMessage.from(bytes);
+        assertEquals(messageA, messageB);
+    }
+
+    @Test
     public void altitudeMessage_equals_passes() {
         final float sealevel = 123.456f;
         final float surface = 234.567f;
