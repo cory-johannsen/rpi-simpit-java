@@ -8,7 +8,11 @@ This application serves as a replacement client for the [KerbalSimpit Arduino li
 
 As of 6/18/2018, the application can SYNC with KerbalSimpit, subcribe to all telemetry data channels, and decode all incoming datagram into their domain specific types.
 
-Upstream commands are currently limited to ECHO, channel subscription, and action group control (standard and custom), but remaining commands will be implemented next.
+Upstream commands are currently limited to ECHO, channel subscription, and action group control (all standard groups and all custom).  
+
+GPIO has been enabled, and can now be used to trigger action groups.  Support for enable switches is also included, as one of the primary goals was the construction of a stage-enable switch that prevents accidental staging.
+
+Ship control commands will be implemented next.
 
 There's shockingly little test coverage.  I'll be adding that as I go.
 
